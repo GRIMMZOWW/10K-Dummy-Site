@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { ProductFilters, ProductSort } from '../api/client';
+import { ActiveFilters } from '../components/ActiveFilters';
 import { FilterSidebar } from '../components/FilterSidebar';
+import { Header, type GridDensity } from '../components/Header';
 import { Pagination } from '../components/Pagination';
 import { ProductGrid } from '../components/ProductGrid';
-import { SearchBar } from '../components/SearchBar';
+import { QuickViewDrawer } from '../components/QuickViewDrawer';
 import { Skeleton } from '../components/Skeleton';
 import { useDebounce } from '../hooks/useDebounce';
 import { useCategories, useProducts } from '../hooks/useProducts';
@@ -60,6 +62,9 @@ export function Catalog() {
   const [searchText, setSearchText] = useState(urlQ);
   const [minPriceInput, setMinPriceInput] = useState(urlMinPrice);
   const [maxPriceInput, setMaxPriceInput] = useState(urlMaxPrice);
+  const [density, setDensity] = useState<GridDensity>('4-col');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [quickViewSlug, setQuickViewSlug] = useState<string | null>(null);
 
   useEffect(() => {
     setSearchText(urlQ);
@@ -141,6 +146,25 @@ export function Catalog() {
     });
   };
 
+  const handleCategoryChange = (cat: string) =>
+    updateParam((next) => {
+      if (cat) next.set('category', cat);
+      else next.delete('category');
+      next.delete('page');
+    });
+
+  const handlePricePreset = (min: string, max: string) => {
+    setMinPriceInput(min);
+    setMaxPriceInput(max);
+    updateParam((next) => {
+      if (min) next.set('minPrice', min);
+      else next.delete('minPrice');
+      if (max) next.set('maxPrice', max);
+      else next.delete('maxPrice');
+      next.delete('page');
+    });
+  };
+
   const handleReset = () => {
     setSearchText('');
     setMinPriceInput('');
@@ -157,31 +181,40 @@ export function Catalog() {
       urlSort !== 'relevance',
   );
 
+  const categories = categoriesQuery.data ?? [];
+  const totalCatalogCount = useMemo(
+    () => categories.reduce((sum, c) => sum + c.count, 0) || 10000,
+    [categories],
+  );
+
   const data = productsQuery.data;
 
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <div>
-          <h1 className="site-title">Product Catalog</h1>
-          <p className="site-subtitle">10,000 indexed items across 24 categories</p>
-        </div>
-        <div className="result-status" aria-live="polite">
-          {data
-            ? `${data.total.toLocaleString()} items${productsQuery.isFetching ? ' (updating)' : ''}`
-            : productsQuery.isPending
-              ? 'Loading catalog...'
-              : ''}
-        </div>
-      </header>
+      <Header
+        searchText={searchText}
+        onSearchChange={setSearchText}
+        density={density}
+        onDensityChange={setDensity}
+        categories={categories}
+        selectedCategory={urlCategory}
+        onCategoryChange={handleCategoryChange}
+        totalCatalogCount={totalCatalogCount}
+      />
 
-      <div className="catalog-toolbar">
-        <SearchBar value={searchText} onChange={setSearchText} />
+      <div className="mobile-filter-bar">
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => setMobileFiltersOpen(true)}
+        >
+          Filters{hasActiveFilters ? ' (active)' : ''}
+        </button>
       </div>
 
       <div className="catalog-layout">
         <FilterSidebar
-          categories={categoriesQuery.data ?? []}
+          categories={categories}
           selectedCategory={urlCategory}
           minPriceInput={minPriceInput}
           maxPriceInput={maxPriceInput}
@@ -189,15 +222,12 @@ export function Catalog() {
           inStock={urlInStock}
           sort={urlSort}
           hasActiveFilters={hasActiveFilters}
-          onCategoryChange={(cat) =>
-            updateParam((next) => {
-              if (cat) next.set('category', cat);
-              else next.delete('category');
-              next.delete('page');
-            })
-          }
+          isOpen={mobileFiltersOpen}
+          onClose={() => setMobileFiltersOpen(false)}
+          onCategoryChange={handleCategoryChange}
           onMinPriceChange={setMinPriceInput}
           onMaxPriceChange={setMaxPriceInput}
+          onPricePreset={handlePricePreset}
           onInStockChange={(checked) =>
             updateParam((next) => {
               if (checked) next.set('inStock', 'true');
@@ -215,7 +245,38 @@ export function Catalog() {
           onReset={handleReset}
         />
 
-        <main>
+        <main className="catalog-main">
+          {data && (
+            <ActiveFilters
+              page={data.page}
+              limit={data.limit}
+              itemCount={data.items.length}
+              total={data.total}
+              isFetching={productsQuery.isFetching}
+              q={urlQ}
+              category={urlCategory}
+              minPrice={urlMinPrice}
+              maxPrice={urlMaxPrice}
+              inStock={urlInStock}
+              onClearQ={() => {
+                setSearchText('');
+                updateParam((next) => {
+                  next.delete('q');
+                  next.delete('page');
+                });
+              }}
+              onClearCategory={() => handleCategoryChange('')}
+              onClearPrice={() => handlePricePreset('', '')}
+              onClearInStock={() =>
+                updateParam((next) => {
+                  next.delete('inStock');
+                  next.delete('page');
+                })
+              }
+              onClearAll={handleReset}
+            />
+          )}
+
           {productsQuery.isPending ? (
             <Skeleton count={12} />
           ) : productsQuery.isError ? (
@@ -248,7 +309,12 @@ export function Catalog() {
             </div>
           ) : data ? (
             <>
-              <ProductGrid items={data.items} isDimmed={productsQuery.isPlaceholderData} />
+              <ProductGrid
+                items={data.items}
+                isDimmed={productsQuery.isPlaceholderData}
+                density={density}
+                onQuickView={setQuickViewSlug}
+              />
               <Pagination
                 page={data.page}
                 totalPages={data.totalPages}
@@ -263,6 +329,11 @@ export function Catalog() {
           ) : null}
         </main>
       </div>
+
+      <QuickViewDrawer
+        slug={quickViewSlug}
+        onClose={() => setQuickViewSlug(null)}
+      />
     </div>
   );
 }

@@ -1,22 +1,43 @@
+import { useEffect, useRef } from 'react';
+
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
 }
 
 export function SearchBar({ value, onChange }: SearchBarProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+      inputRef.current?.focus();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   return (
-    <form
-      className="search-form"
-      role="search"
-      onSubmit={(e) => e.preventDefault()}
-    >
-      <label htmlFor="catalog-search" className="search-label">
+    <form className="search-form" role="search" onSubmit={(e) => e.preventDefault()}>
+      <label htmlFor="catalog-search" className="sr-only">
         Search products
       </label>
       <svg
         className="search-icon"
-        width="18"
-        height="18"
+        width="17"
+        height="17"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -27,6 +48,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         <path d="m21 21-4.3-4.3" />
       </svg>
       <input
+        ref={inputRef}
         id="catalog-search"
         type="search"
         className="search-input"
@@ -35,26 +57,19 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         maxLength={100}
         onChange={(e) => onChange(e.target.value)}
       />
-      {value.length > 0 && (
+      {value.length > 0 ? (
         <button
           type="button"
           className="search-clear"
           aria-label="Clear search"
           onClick={() => onChange('')}
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
+          <span aria-hidden="true">×</span>
         </button>
+      ) : (
+        <kbd className="search-kbd" aria-hidden="true">
+          /
+        </kbd>
       )}
     </form>
   );

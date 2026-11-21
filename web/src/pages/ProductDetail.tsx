@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ApiError, formatPrice } from '../api/client';
+import { ApiError, computeOriginalPrice, formatPrice } from '../api/client';
 import { useProductDetail } from '../hooks/useProducts';
 
 export function ProductDetail() {
@@ -16,7 +16,7 @@ export function ProductDetail() {
 
   if (detailQuery.isPending) {
     return (
-      <div className="app-shell">
+      <div className="app-shell detail-shell">
         <Link to="/" className="detail-back">
           Back to catalog
         </Link>
@@ -32,7 +32,7 @@ export function ProductDetail() {
       detailQuery.error instanceof ApiError && detailQuery.error.status === 404;
 
     return (
-      <div className="app-shell">
+      <div className="app-shell detail-shell">
         <Link to="/" className="detail-back">
           Back to catalog
         </Link>
@@ -61,10 +61,15 @@ export function ProductDetail() {
 
   const gallery = product.images.length > 0 ? product.images : [product.thumbnail];
   const activeUrl = gallery[selectedImage] ?? product.thumbnail;
-  const inStock = product.stock > 0;
+  const originalPrice = computeOriginalPrice(
+    product.price,
+    product.discountPercentage,
+  );
+  const savingsMinor =
+    originalPrice !== null ? Math.max(0, originalPrice - product.price) : 0;
 
   return (
-    <div className="app-shell">
+    <div className="app-shell detail-shell">
       <Link to="/" className="detail-back">
         Back to catalog
       </Link>
@@ -96,45 +101,67 @@ export function ProductDetail() {
           )}
         </div>
 
-        <div className="detail-info">
-          <span className="detail-sku">SKU: {product.sku}</span>
+        <div className="detail-info-sticky">
           <h1 className="detail-title">{product.title}</h1>
 
           <div className="detail-price-row">
             <span className="detail-price">{formatPrice(product.price)}</span>
+            {originalPrice !== null && product.discountPercentage >= 5 && (
+              <span className="product-price-orig">
+                {formatPrice(originalPrice)}
+              </span>
+            )}
             {product.discountPercentage > 0 && (
               <span className="detail-discount">
-                -{product.discountPercentage.toFixed(1)}% list discount
+                -{product.discountPercentage.toFixed(1)}%
               </span>
             )}
           </div>
 
-          <span className={`stock-tag${inStock ? '' : ' is-out'}`}>
-            {inStock ? `${product.stock} units in stock` : 'Out of stock'}
-          </span>
-
-          <dl className="detail-specs">
-            <div className="spec-item">
-              <dt className="spec-label">Category</dt>
-              <dd className="spec-value">{product.category.replace(/-/g, ' ')}</dd>
-            </div>
-            <div className="spec-item">
-              <dt className="spec-label">Brand</dt>
-              <dd className="spec-value">{product.brand || 'Unbranded'}</dd>
-            </div>
-            <div className="spec-item">
-              <dt className="spec-label">Rating</dt>
-              <dd className="spec-value">{product.rating.toFixed(2)} / 5</dd>
-            </div>
-            <div className="spec-item">
-              <dt className="spec-label">Added</dt>
-              <dd className="spec-value">
-                {new Date(product.createdAt).toLocaleDateString('en-US')}
-              </dd>
-            </div>
-          </dl>
-
           <p className="detail-description">{product.description}</p>
+
+          <table className="spec-table" aria-label="Product specifications">
+            <tbody>
+              <tr>
+                <th scope="row">SKU</th>
+                <td className="is-mono">{product.sku}</td>
+              </tr>
+              <tr>
+                <th scope="row">Brand</th>
+                <td>{product.brand || 'Unbranded'}</td>
+              </tr>
+              <tr>
+                <th scope="row">Category</th>
+                <td>{product.category.replace(/-/g, ' ')}</td>
+              </tr>
+              <tr>
+                <th scope="row">Stock</th>
+                <td className="is-mono">
+                  {product.stock > 0
+                    ? `${product.stock} units`
+                    : 'Out of stock'}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Rating</th>
+                <td className="is-mono">{product.rating.toFixed(2)} / 5</td>
+              </tr>
+              <tr>
+                <th scope="row">Savings</th>
+                <td className="is-mono">
+                  {savingsMinor > 0
+                    ? `${formatPrice(savingsMinor)} (${product.discountPercentage.toFixed(1)}%)`
+                    : 'None'}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Added</th>
+                <td className="is-mono">
+                  {new Date(product.createdAt).toLocaleDateString('en-US')}
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
           {product.tags.length > 0 && (
             <ul className="tag-list" aria-label="Product tags">

@@ -64,6 +64,14 @@ export function formatPrice(minorUnits: number): string {
   return priceFormatter.format(minorUnits / 100);
 }
 
+export function computeOriginalPrice(
+  minorUnits: number,
+  discountPercentage: number,
+): number | null {
+  if (discountPercentage <= 0 || discountPercentage >= 100) return null;
+  return Math.round(minorUnits / (1 - discountPercentage / 100));
+}
+
 async function requestJson<T>(url: string, signal?: AbortSignal): Promise<T> {
   const res = await fetch(url, { signal });
   if (!res.ok) {
