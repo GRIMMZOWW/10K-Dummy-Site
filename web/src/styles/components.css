@@ -177,12 +177,14 @@
 
 .product-price {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 1rem;
   font-weight: 500;
 }
 
 .product-price-orig {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 0.75rem;
   color: var(--ink-muted);
   text-decoration: line-through;
@@ -246,15 +248,22 @@
 }
 
 .drawer-close {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   background: var(--surface);
+  color: var(--ink);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 140ms var(--ease-out-expo), border-color 140ms var(--ease-out-expo);
+}
+
+.drawer-close:hover {
+  background-color: var(--surface-muted);
+  border-color: var(--ink);
 }
 
 .drawer-actions {
@@ -321,8 +330,8 @@
   color: var(--danger);
 }
 
-.state-title { margin: 0 0 8px; font-family: var(--font-display); font-size: 1.125rem; font-weight: 700; }
-.state-copy { margin: 0 0 16px; color: var(--ink-muted); }
+.state-title { margin: 0 0 8px; font-family: var(--font-display); font-size: 1.125rem; font-weight: 700; text-wrap: balance; }
+.state-copy { margin: 0 auto 16px; color: var(--ink-muted); max-width: 55ch; text-wrap: pretty; }
 
 .pagination {
   margin-top: 28px;
@@ -341,6 +350,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 0.875rem;
   cursor: pointer;
 }
@@ -386,11 +396,11 @@
 
 .detail-thumb-btn.is-active { border-color: var(--accent); border-width: 2px; }
 .detail-thumb-btn img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.detail-title { margin: 0; font-family: var(--font-display); font-size: clamp(1.4rem, 2.2vw, 1.9rem); font-weight: 700; line-height: 1.25; overflow-wrap: break-word; min-width: 0; }
+.detail-title { margin: 0; font-family: var(--font-display); font-size: clamp(1.4rem, 2.2vw, 1.9rem); font-weight: 700; line-height: 1.25; overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
 .detail-price-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.detail-price { font-family: var(--font-mono); font-size: 1.625rem; font-weight: 500; }
-.detail-discount { font-family: var(--font-mono); font-size: 0.875rem; color: var(--accent); }
-.detail-description { margin: 0; line-height: 1.6; }
+.detail-price { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 1.625rem; font-weight: 500; }
+.detail-discount { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 0.875rem; color: var(--accent); }
+.detail-description { margin: 0; line-height: 1.6; max-width: 65ch; text-wrap: pretty; }
 
 .spec-table {
   width: 100%;
@@ -418,6 +428,7 @@
 
 .spec-table td.is-mono {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   text-transform: none;
 }
 
@@ -448,18 +459,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .product-grid,
-  .product-card,
-  .product-thumb,
   .drawer-panel,
-  .skeleton-box,
-  .search-input,
-  .density-btn,
-  .ribbon-pill,
-  .filter-chip,
-  .preset-chip,
-  .quick-view-btn {
+  .skeleton-box {
     animation: none;
-    transition: none;
+  }
+  .product-card,
+  .product-thumb {
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .product-card:hover,
+  .product-card:hover .product-thumb {
+    transform: none;
   }
 }

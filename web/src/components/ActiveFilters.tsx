@@ -46,6 +46,21 @@ export function ActiveFilters({
 
   const hasAnyChip = Boolean(q || category || hasPrice || inStock);
 
+  const closeIcon = (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden="true"
+    >
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+
   return (
     <div className="active-bar">
       <div className="telemetry-text" aria-live="polite">
@@ -60,25 +75,25 @@ export function ActiveFilters({
           {q && (
             <button type="button" className="filter-chip" onClick={onClearQ}>
               <span>Query: {q}</span>
-              <span aria-hidden="true">×</span>
+              {closeIcon}
             </button>
           )}
           {category && (
             <button type="button" className="filter-chip" onClick={onClearCategory}>
               <span>Category: {category.replace(/-/g, ' ')}</span>
-              <span aria-hidden="true">×</span>
+              {closeIcon}
             </button>
           )}
           {hasPrice && (
             <button type="button" className="filter-chip" onClick={onClearPrice}>
               <span>Price: {priceLabel}</span>
-              <span aria-hidden="true">×</span>
+              {closeIcon}
             </button>
           )}
           {inStock && (
             <button type="button" className="filter-chip" onClick={onClearInStock}>
               <span>In stock only</span>
-              <span aria-hidden="true">×</span>
+              {closeIcon}
             </button>
           )}
           <button type="button" className="btn-link" onClick={onClearAll}>

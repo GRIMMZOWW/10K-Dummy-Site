@@ -46,7 +46,7 @@ export function Header({
               </span>
               <span className="brand-stack">
                 <span>Catalog</span>
-                <span className="brand-edition">ARCHIVE STORE · 2026</span>
+                <span className="brand-edition">Archive Edition 2026</span>
               </span>
             </Link>
           </div>

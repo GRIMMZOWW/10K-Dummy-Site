@@ -64,6 +64,7 @@
 
 .search-option-price {
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 0.8125rem;
   font-weight: 500;
   flex-shrink: 0;
@@ -98,6 +99,7 @@
   font-family: var(--font-display);
   font-size: 0.9375rem;
   font-weight: 700;
+  text-wrap: balance;
 }
 
 .spotlight-sub {
@@ -144,6 +146,7 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
 .spotlight-cat {
@@ -166,6 +169,7 @@
   align-items: center;
   gap: 10px;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: 0.75rem;
 }
 
@@ -215,12 +219,25 @@
   border-top: 1px solid var(--border);
 }
 
+.detail-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.detail-breadcrumb .detail-back {
+  margin-bottom: 0;
+}
+
 .related-heading {
   margin: 0 0 16px;
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
   text-transform: capitalize;
+  text-wrap: balance;
 }
 
 .related-grid {

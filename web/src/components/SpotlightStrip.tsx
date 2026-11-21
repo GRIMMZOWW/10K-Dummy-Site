@@ -31,7 +31,7 @@ export function SpotlightStrip({ visible }: SpotlightStripProps) {
           {[0, 1, 2].map((idx) => (
             <div key={idx} className="spotlight-item">
               <div className="spotlight-thumb skeleton-box" />
-              <div className="spotlight-meta" style={{ flex: 1 }}>
+              <div className="spotlight-meta">
                 <div className="skeleton-box skeleton-line short" />
                 <div className="skeleton-box skeleton-line" />
               </div>

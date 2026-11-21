@@ -89,9 +89,17 @@ export function ProductDetail() {
 
   return (
     <div className="app-shell detail-shell">
-      <Link to="/" className="detail-back">
-        Back to catalog
-      </Link>
+      <nav className="detail-breadcrumb" aria-label="Breadcrumb">
+        <Link to="/" className="detail-back">
+          Back to catalog
+        </Link>
+        <Link
+          to={`/?category=${encodeURIComponent(product.category)}`}
+          className="detail-back"
+        >
+          {product.category.replace(/-/g, ' ')}
+        </Link>
+      </nav>
 
       <article className="detail-layout">
         <div className="detail-media">

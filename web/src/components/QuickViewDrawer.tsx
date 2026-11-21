@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { computeOriginalPrice, formatPrice } from '../api/client';
 import { useProductDetail } from '../hooks/useProducts';
@@ -11,6 +11,7 @@ interface QuickViewDrawerProps {
 export function QuickViewDrawer({ slug, onClose }: QuickViewDrawerProps) {
   const detailQuery = useProductDetail(slug ?? '');
   const [selectedImage, setSelectedImage] = useState(0);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setSelectedImage(0);
@@ -18,11 +19,20 @@ export function QuickViewDrawer({ slug, onClose }: QuickViewDrawerProps) {
 
   useEffect(() => {
     if (!slug) return;
+    const prevActive = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeBtnRef.current?.focus();
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = prevOverflow;
+      prevActive?.focus?.();
+    };
   }, [slug, onClose]);
 
   if (!slug) return null;
@@ -58,12 +68,24 @@ export function QuickViewDrawer({ slug, onClose }: QuickViewDrawerProps) {
             {product ? product.sku : 'Loading item'}
           </span>
           <button
+            ref={closeBtnRef}
             type="button"
             className="drawer-close"
             aria-label="Close quick view"
             onClick={onClose}
           >
-            <span aria-hidden="true">×</span>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
           </button>
         </div>
 
