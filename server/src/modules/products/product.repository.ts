@@ -43,12 +43,10 @@ function escapeRegex(value: string): string {
 
 export function buildListQueryParts(query: ProductListQuery): {
   filter: FilterQuery<Product>;
-  sort: Record<string, SortOrder | { $meta: 'textScore' }>;
-  isTextSearch: boolean;
+  sort: Record<string, SortOrder>;
 } {
   const filter: FilterQuery<Product> = {};
-  let isTextSearch = false;
-  let isPrefixSearch = false;
+  let hasSearch = false;
 
   if (query.category) {
     filter.category = query.category;
@@ -66,16 +64,16 @@ export function buildListQueryParts(query: ProductListQuery): {
   }
 
   if (query.q) {
-    if (query.q.length <= 2) {
-      isPrefixSearch = true;
-      filter.titleLower = { $regex: `^${escapeRegex(query.q.toLowerCase())}` };
-    } else {
-      isTextSearch = true;
-      filter.$text = { $search: query.q };
+    const tokens = query.q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (tokens.length > 0) {
+      hasSearch = true;
+      filter.$and = tokens.map((token) => ({
+        searchText: new RegExp(escapeRegex(token)),
+      }));
     }
   }
 
-  let sort: Record<string, SortOrder | { $meta: 'textScore' }>;
+  let sort: Record<string, SortOrder>;
   switch (query.sort) {
     case 'price_asc':
       sort = { price: 1 };
@@ -91,10 +89,8 @@ export function buildListQueryParts(query: ProductListQuery): {
       break;
     case 'relevance':
     default:
-      if (isTextSearch) {
-        sort = { score: { $meta: 'textScore' } };
-      } else if (isPrefixSearch) {
-        sort = { titleLower: 1 };
+      if (hasSearch) {
+        sort = { rating: -1, createdAt: -1 };
       } else if (query.minPrice !== undefined || query.maxPrice !== undefined) {
         sort = { price: 1 };
       } else {
@@ -103,41 +99,35 @@ export function buildListQueryParts(query: ProductListQuery): {
       break;
   }
 
-  return { filter, sort, isTextSearch };
+  return { filter, sort };
 }
 
 export const productRepository = {
   async findList(query: ProductListQuery): Promise<{ items: ProductCard[]; total: number }> {
-    const { filter, sort, isTextSearch } = buildListQueryParts(query);
+    const { filter, sort } = buildListQueryParts(query);
     const skip = (query.page - 1) * query.limit;
-
-    const projection = isTextSearch
-      ? { ...CARD_PROJECTION, score: { $meta: 'textScore' } }
-      : CARD_PROJECTION;
 
     const countPromise =
       Object.keys(filter).length === 0
         ? ProductModel.estimatedDocumentCount()
         : ProductModel.countDocuments(filter);
 
-    const [rawItems, total] = await Promise.all([
-      ProductModel.find(filter, projection)
+    const [items, total] = await Promise.all([
+      ProductModel.find(filter, CARD_PROJECTION)
         .sort(sort)
         .skip(skip)
         .limit(query.limit)
-        .lean<Array<ProductCard & { score?: number }>>(),
+        .lean<ProductCard[]>(),
       countPromise,
     ]);
-
-    const items: ProductCard[] = isTextSearch
-      ? rawItems.map(({ score: _score, ...card }) => card)
-      : rawItems;
 
     return { items, total };
   },
 
-  async findBySlug(slug: string): Promise<(Product & { _id: unknown }) | null> {
-    return ProductModel.findOne({ slug }).lean<Product & { _id: unknown }>();
+  async findBySlug(slug: string): Promise<(Omit<Product, 'searchText'> & { _id: unknown }) | null> {
+    return ProductModel.findOne({ slug }, { searchText: 0 }).lean<
+      Omit<Product, 'searchText'> & { _id: unknown }
+    >();
   },
 
   async getCategories(): Promise<CategorySummary[]> {

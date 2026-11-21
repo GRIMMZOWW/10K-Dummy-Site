@@ -29,8 +29,8 @@ const EXPLAIN_CASES: ExplainCase[] = [
   { name: 'category filter', rawQuery: { category: 'smartphones' } },
   { name: 'minPrice/maxPrice range', rawQuery: { minPrice: '10', maxPrice: '500' } },
   { name: 'inStock=true', rawQuery: { inStock: 'true' } },
-  { name: 'q 2-char prefix', rawQuery: { q: 'ma' } },
-  { name: 'q 3+ char $text', rawQuery: { q: 'phone' } },
+  { name: 'q 2-char substring', rawQuery: { q: 'ma' } },
+  { name: 'q 3+ char substring', rawQuery: { q: 'peeler' } },
   { name: 'sort=price_asc (no category)', rawQuery: { sort: 'price_asc' } },
   {
     name: 'sort=price_asc (with category)',
@@ -89,7 +89,7 @@ async function run(): Promise<void> {
 
     for (const testCase of EXPLAIN_CASES) {
       const parsed = productListQuerySchema.parse(testCase.rawQuery);
-      const { filter, sort, isTextSearch } = buildListQueryParts(parsed);
+      const { filter, sort } = buildListQueryParts(parsed);
 
       const explanation = (await ProductModel.find(filter)
         .sort(sort)
@@ -108,11 +108,9 @@ async function run(): Promise<void> {
       const stages = collectStages(explanation.queryPlanner?.winningPlan);
       const stageNames = stages.map((s) => s.stage);
       const hasCollscan = stageNames.includes('COLLSCAN');
-      const hasIndexScan = stageNames.some(
-        (s) => s === 'IXSCAN' || s === 'TEXT' || s === 'TEXT_OR' || s === 'TEXT_MATCH',
-      );
-      const hasSortStage = stageNames.includes('SORT') || stageNames.includes('SORT_KEY_GENERATOR');
-      const hasInMemorySort = isTextSearch ? false : hasSortStage;
+      const hasIndexScan = stageNames.includes('IXSCAN');
+      const hasInMemorySort =
+        stageNames.includes('SORT') || stageNames.includes('SORT_KEY_GENERATOR');
 
       const passed = !hasCollscan && hasIndexScan && !hasInMemorySort;
       if (!passed) failures++;

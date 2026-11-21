@@ -22,6 +22,10 @@ const productSchema = new Schema(
       required: true,
       trim: true,
     },
+    searchText: {
+      type: String,
+      required: true,
+    },
     description: {
       type: String,
       required: true,
@@ -93,9 +97,9 @@ const productSchema = new Schema(
 productSchema.index({ sku: 1 }, { unique: true });
 productSchema.index({ slug: 1 }, { unique: true });
 productSchema.index({ category: 1, price: 1 });
-productSchema.index({ category: 1, rating: -1 });
+productSchema.index({ category: 1, rating: -1, createdAt: -1 });
 productSchema.index({ price: 1 });
-productSchema.index({ rating: -1 });
+productSchema.index({ rating: -1, createdAt: -1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ category: 1, createdAt: -1 });
 productSchema.index({ titleLower: 1 });

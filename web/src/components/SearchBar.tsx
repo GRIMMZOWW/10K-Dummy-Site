@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { formatPrice, handleImageError } from '../api/client';
 import { useDebounce } from '../hooks/useDebounce';
@@ -8,15 +8,47 @@ interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
   onSubmit?: () => void;
+  onClear?: () => void;
 }
 
-export function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function renderHighlightedTitle(title: string, query: string): ReactNode {
+  const tokens = Array.from(
+    new Set(
+      query
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean),
+    ),
+  ).sort((a, b) => b.length - a.length);
+
+  if (tokens.length === 0) return title;
+
+  const pattern = new RegExp(`(${tokens.map(escapeRegExp).join('|')})`, 'gi');
+  const parts = title.split(pattern);
+
+  return parts.map((part, idx) =>
+    tokens.some((t) => part.toLowerCase() === t) ? (
+      <mark key={idx} className="search-mark">
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
+  );
+}
+
+export function SearchBar({ value, onChange, onSubmit, onClear }: SearchBarProps) {
   const containerRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const trimmed = value.trim();
-  const debouncedQuery = useDebounce(trimmed, 300);
+  const debouncedQuery = useDebounce(trimmed, 200);
   const previewActive = dropdownOpen && debouncedQuery.length >= 1;
 
   const previewQuery = useProducts(
@@ -93,7 +125,7 @@ export function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
         id="catalog-search"
         type="search"
         className="search-input"
-        placeholder="Search titles, descriptions, or tags"
+        placeholder="Search titles, brands, categories, or SKUs"
         value={value}
         maxLength={100}
         autoComplete="off"
@@ -113,8 +145,9 @@ export function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
           className="search-clear"
           aria-label="Clear search"
           onClick={() => {
-            onChange('');
             setDropdownOpen(false);
+            if (onClear) onClear();
+            else onChange('');
           }}
         >
           <svg
@@ -165,7 +198,9 @@ export function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
                       onError={handleImageError}
                     />
                     <span className="search-option-meta">
-                      <span className="search-option-title">{item.title}</span>
+                      <span className="search-option-title">
+                        {renderHighlightedTitle(item.title, debouncedQuery)}
+                      </span>
                       <span className="search-option-cat">
                         {item.category.replace(/-/g, ' ')}
                       </span>

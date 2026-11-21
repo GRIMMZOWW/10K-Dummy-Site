@@ -137,28 +137,40 @@ describe('Products API integration tests', () => {
       expect(res.body.items).toHaveLength(16);
     });
 
-    it('supports 2-char prefix search and 3+ char $text search', async () => {
-      const [prefixRes, textRes] = await Promise.all([
-        request(app).get('/api/products?q=ip'),
-        request(app).get('/api/products?q=phone'),
+    it('supports 1-char, 2-char mid-word, partial word, full word, and reversed multi-word search', async () => {
+      const [oneChar, midEe, midPh, partialPeel, fullPeeler, reversedMulti] = await Promise.all([
+        request(app).get('/api/products?q=p'),
+        request(app).get('/api/products?q=ee'),
+        request(app).get('/api/products?q=ph'),
+        request(app).get('/api/products?q=peel'),
+        request(app).get('/api/products?q=peeler'),
+        request(app).get('/api/products?q=pro%20macbook'),
       ]);
 
-      expect(prefixRes.status).toBe(200);
-      expect(prefixRes.body.total).toBeGreaterThan(0);
-      for (const item of prefixRes.body.items) {
-        expect((item.title as string).toLowerCase().startsWith('ip')).toBe(true);
+      expect(oneChar.status).toBe(200);
+      expect(oneChar.body.total).toBeGreaterThan(0);
+
+      expect(midEe.status).toBe(200);
+      expect(midEe.body.total).toBeGreaterThan(0);
+
+      expect(midPh.status).toBe(200);
+      expect(midPh.body.total).toBeGreaterThan(0);
+
+      expect(partialPeel.status).toBe(200);
+      expect(partialPeel.body.total).toBeGreaterThan(0);
+      expect((partialPeel.body.items[0].title as string).toLowerCase()).toContain('peel');
+
+      expect(fullPeeler.status).toBe(200);
+      expect(fullPeeler.body.total).toBeGreaterThan(0);
+      expect((fullPeeler.body.items[0].title as string).toLowerCase()).toContain('peeler');
+
+      expect(reversedMulti.status).toBe(200);
+      expect(reversedMulti.body.total).toBeGreaterThan(0);
+      for (const item of reversedMulti.body.items) {
+        const lower = (item.title as string).toLowerCase();
+        expect(lower).toContain('macbook');
+        expect(lower).toContain('pro');
       }
-
-      expect(textRes.status).toBe(200);
-      expect(textRes.body.total).toBeGreaterThan(0);
-    });
-
-    it('returns matching peeler products for GET /api/products?q=peeler', async () => {
-      const res = await request(app).get('/api/products?q=peeler');
-      expect(res.status).toBe(200);
-      expect(res.body.total).toBeGreaterThan(0);
-      expect(res.body.items.length).toBeGreaterThan(0);
-      expect((res.body.items[0].title as string).toLowerCase()).toContain('peeler');
     });
 
     it('filters out-of-stock products when inStock=true', async () => {

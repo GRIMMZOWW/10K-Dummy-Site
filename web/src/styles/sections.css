@@ -56,6 +56,14 @@
   text-overflow: ellipsis;
 }
 
+.search-mark {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 2px;
+  padding: 0 1px;
+  font-weight: 600;
+}
+
 .search-option-cat {
   font-size: 0.75rem;
   color: var(--ink-muted);

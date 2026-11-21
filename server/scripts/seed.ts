@@ -161,16 +161,24 @@ function expandProducts(baseProducts: DummyJsonProduct[]): Product[] {
           : 0;
 
       const createdAt = new Date(BASE_CREATED_AT_MS - Math.floor(rand() * ONE_YEAR_MS));
+      const brand = base.brand?.trim() || undefined;
+      const category = base.category.trim();
+      const tags = Array.isArray(base.tags) ? base.tags : [];
+      const searchText = [title, brand, category, ...tags, sku]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
 
       generated.push({
         sku,
         slug,
         title,
         titleLower,
+        searchText,
         description: base.description,
-        brand: base.brand?.trim() || undefined,
-        category: base.category.trim(),
-        tags: Array.isArray(base.tags) ? base.tags : [],
+        brand,
+        category,
+        tags,
         price,
         discountPercentage,
         stock,

@@ -103,7 +103,7 @@ export function Catalog() {
     setMaxPriceInput(urlMaxPrice);
   }, [urlMaxPrice]);
 
-  const debouncedQ = useDebounce(searchText.trim().slice(0, 100), 300);
+  const debouncedQ = useDebounce(searchText.trim().slice(0, 100), 200);
   const debouncedMin = useDebounce(minPriceInput, 300);
   const debouncedMax = useDebounce(maxPriceInput, 300);
 
@@ -235,6 +235,10 @@ export function Catalog() {
         searchText={searchText}
         onSearchChange={setSearchText}
         onSearchSubmit={() => commitQueryToUrl(searchText.trim().slice(0, 100))}
+        onSearchClear={() => {
+          setSearchText('');
+          commitQueryToUrl('');
+        }}
         density={density}
         onDensityChange={setDensity}
         categories={categories}

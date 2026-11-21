@@ -8,6 +8,7 @@ interface HeaderProps {
   searchText: string;
   onSearchChange: (value: string) => void;
   onSearchSubmit?: () => void;
+  onSearchClear?: () => void;
   density: GridDensity;
   onDensityChange: (density: GridDensity) => void;
   categories: CategoryCount[];
@@ -19,6 +20,7 @@ export function Header({
   searchText,
   onSearchChange,
   onSearchSubmit,
+  onSearchClear,
   density,
   onDensityChange,
   categories,
@@ -54,7 +56,12 @@ export function Header({
           </div>
 
           <div className="header-controls">
-            <SearchBar value={searchText} onChange={onSearchChange} onSubmit={onSearchSubmit} />
+            <SearchBar
+              value={searchText}
+              onChange={onSearchChange}
+              onSubmit={onSearchSubmit}
+              onClear={onSearchClear}
+            />
 
             <div className="density-toggle" role="group" aria-label="Grid density">
               <button
