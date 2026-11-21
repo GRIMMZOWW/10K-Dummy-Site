@@ -12,7 +12,6 @@ interface HeaderProps {
   categories: CategoryCount[];
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
-  totalCatalogCount: number;
 }
 
 export function Header({
@@ -23,10 +22,7 @@ export function Header({
   categories,
   selectedCategory,
   onCategoryChange,
-  totalCatalogCount,
 }: HeaderProps) {
-  const categoryCount = categories.length > 0 ? categories.length : 24;
-
   return (
     <header className="store-header">
       <div className="store-header-inner">
@@ -48,11 +44,11 @@ export function Header({
                   <rect x="14" y="14" width="7" height="7" />
                 </svg>
               </span>
-              <span>Catalog</span>
+              <span className="brand-stack">
+                <span>Catalog</span>
+                <span className="brand-edition">ARCHIVE STORE · 2026</span>
+              </span>
             </Link>
-            <span className="catalog-badge">
-              {totalCatalogCount.toLocaleString()} SKUs · {categoryCount} Categories
-            </span>
           </div>
 
           <div className="header-controls">

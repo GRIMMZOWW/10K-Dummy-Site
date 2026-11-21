@@ -138,7 +138,7 @@ export function FilterSidebar({
                 type="text"
                 inputMode="decimal"
                 className="text-input"
-                placeholder="0.00"
+                placeholder="Min"
                 value={minPriceInput}
                 onChange={(e) => onMinPriceChange(e.target.value)}
               />
@@ -152,7 +152,7 @@ export function FilterSidebar({
                 type="text"
                 inputMode="decimal"
                 className="text-input"
-                placeholder="50000"
+                placeholder="Max"
                 value={maxPriceInput}
                 onChange={(e) => onMaxPriceChange(e.target.value)}
               />
@@ -196,24 +196,37 @@ export function FilterSidebar({
                   onClose();
                 }}
               >
-                <span>All categories</span>
+                <span className="category-name-wrap">
+                  {selectedCategory === '' && (
+                    <span className="category-indicator" aria-hidden="true" />
+                  )}
+                  <span>All categories</span>
+                </span>
               </button>
             </li>
-            {visibleCategories.map((cat) => (
-              <li key={cat.name}>
-                <button
-                  type="button"
-                  className={`category-btn${selectedCategory === cat.name ? ' is-active' : ''}`}
-                  onClick={() => {
-                    onCategoryChange(cat.name);
-                    onClose();
-                  }}
-                >
-                  <span>{cat.name.replace(/-/g, ' ')}</span>
-                  <span className="category-count">{cat.count}</span>
-                </button>
-              </li>
-            ))}
+            {visibleCategories.map((cat) => {
+              const active = selectedCategory === cat.name;
+              return (
+                <li key={cat.name}>
+                  <button
+                    type="button"
+                    className={`category-btn${active ? ' is-active' : ''}`}
+                    onClick={() => {
+                      onCategoryChange(cat.name);
+                      onClose();
+                    }}
+                  >
+                    <span className="category-name-wrap">
+                      {active && (
+                        <span className="category-indicator" aria-hidden="true" />
+                      )}
+                      <span>{cat.name.replace(/-/g, ' ')}</span>
+                    </span>
+                    <span className="category-count">{cat.count}</span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </aside>

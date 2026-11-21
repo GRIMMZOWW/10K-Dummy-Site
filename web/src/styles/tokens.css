@@ -4,6 +4,7 @@
   --surface-muted: #eeece5;
   --surface-hover: #e7e4db;
   --border: #dedbd2;
+  --border-hover: #d4d3cc;
   --border-strong: #c2beb2;
   --ink: #171715;
   --ink-muted: #56544e;
@@ -20,6 +21,8 @@
   --danger-border: #fecaca;
   --backdrop: rgba(23, 23, 21, 0.45);
   --shadow-drawer: -12px 0 32px rgba(23, 23, 21, 0.14);
+  --shadow-card-hover: 0 8px 20px rgba(23, 23, 21, 0.06);
+  --shadow-dropdown: 0 12px 28px rgba(23, 23, 21, 0.12);
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
   --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;

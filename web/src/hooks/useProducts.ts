@@ -6,11 +6,12 @@ import {
   type ProductFilters,
 } from '../api/client';
 
-export function useProducts(filters: ProductFilters) {
+export function useProducts(filters: ProductFilters, enabled = true) {
   return useQuery({
     queryKey: ['products', filters],
     queryFn: ({ signal }) => fetchProducts(filters, signal),
     placeholderData: keepPreviousData,
+    enabled,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });

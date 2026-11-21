@@ -8,6 +8,7 @@ import { Pagination } from '../components/Pagination';
 import { ProductGrid } from '../components/ProductGrid';
 import { QuickViewDrawer } from '../components/QuickViewDrawer';
 import { Skeleton } from '../components/Skeleton';
+import { SpotlightStrip } from '../components/SpotlightStrip';
 import { useDebounce } from '../hooks/useDebounce';
 import { useCategories, useProducts } from '../hooks/useProducts';
 
@@ -181,12 +182,15 @@ export function Catalog() {
       urlSort !== 'relevance',
   );
 
-  const categories = categoriesQuery.data ?? [];
-  const totalCatalogCount = useMemo(
-    () => categories.reduce((sum, c) => sum + c.count, 0) || 10000,
-    [categories],
-  );
+  const showSpotlight =
+    urlPage === 1 &&
+    !urlQ &&
+    !urlCategory &&
+    !urlMinPrice &&
+    !urlMaxPrice &&
+    !urlInStock;
 
+  const categories = categoriesQuery.data ?? [];
   const data = productsQuery.data;
 
   return (
@@ -199,7 +203,6 @@ export function Catalog() {
         categories={categories}
         selectedCategory={urlCategory}
         onCategoryChange={handleCategoryChange}
-        totalCatalogCount={totalCatalogCount}
       />
 
       <div className="mobile-filter-bar">
@@ -246,6 +249,8 @@ export function Catalog() {
         />
 
         <main className="catalog-main">
+          <SpotlightStrip visible={showSpotlight} />
+
           {data && (
             <ActiveFilters
               page={data.page}

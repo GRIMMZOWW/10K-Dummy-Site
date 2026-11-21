@@ -1,18 +1,32 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ApiError, computeOriginalPrice, formatPrice } from '../api/client';
-import { useProductDetail } from '../hooks/useProducts';
+import { ProductCard } from '../components/ProductCard';
+import { QuickViewDrawer } from '../components/QuickViewDrawer';
+import { useProductDetail, useProducts } from '../hooks/useProducts';
 
 export function ProductDetail() {
   const { slug = '' } = useParams();
   const detailQuery = useProductDetail(slug);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [quickViewSlug, setQuickViewSlug] = useState<string | null>(null);
+
+  const product = detailQuery.data;
+
+  const relatedQuery = useProducts(
+    {
+      category: product?.category,
+      sort: 'rating_desc',
+      page: 1,
+      limit: 5,
+    },
+    Boolean(product?.category),
+  );
 
   useEffect(() => {
     setSelectedImage(0);
+    setQuickViewSlug(null);
   }, [slug]);
-
-  const product = detailQuery.data;
 
   if (detailQuery.isPending) {
     return (
@@ -67,6 +81,11 @@ export function ProductDetail() {
   );
   const savingsMinor =
     originalPrice !== null ? Math.max(0, originalPrice - product.price) : 0;
+  const filledStars = Math.round(product.rating);
+
+  const relatedItems = (relatedQuery.data?.items ?? [])
+    .filter((item) => item.slug !== product.slug)
+    .slice(0, 4);
 
   return (
     <div className="app-shell detail-shell">
@@ -104,6 +123,29 @@ export function ProductDetail() {
         <div className="detail-info-sticky">
           <h1 className="detail-title">{product.title}</h1>
 
+          <div
+            className="detail-rating-bar"
+            aria-label={`Rated ${product.rating.toFixed(2)} out of 5`}
+          >
+            <span className="detail-stars" aria-hidden="true">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <svg
+                  key={star}
+                  className={star <= filledStars ? '' : 'is-empty'}
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              ))}
+            </span>
+            <span className="detail-rating-num">
+              {product.rating.toFixed(2)} / 5
+            </span>
+          </div>
+
           <div className="detail-price-row">
             <span className="detail-price">{formatPrice(product.price)}</span>
             {originalPrice !== null && product.discountPercentage >= 5 && (
@@ -119,6 +161,55 @@ export function ProductDetail() {
           </div>
 
           <p className="detail-description">{product.description}</p>
+
+          <div className="trust-row" aria-label="Catalog assurances">
+            <span className="trust-item">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11" />
+                <path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2" />
+                <circle cx="7" cy="18" r="2" />
+                <circle cx="17" cy="18" r="2" />
+              </svg>
+              <span>Tracked dispatch</span>
+            </span>
+            <span className="trust-item">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+              </svg>
+              <span>Manufacturer warranty</span>
+            </span>
+            <span className="trust-item">
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              <span>30-day returns</span>
+            </span>
+          </div>
 
           <table className="spec-table" aria-label="Product specifications">
             <tbody>
@@ -174,6 +265,28 @@ export function ProductDetail() {
           )}
         </div>
       </article>
+
+      {relatedItems.length > 0 && (
+        <section className="related-section" aria-label="More in this category">
+          <h2 className="related-heading">
+            More in {product.category.replace(/-/g, ' ')}
+          </h2>
+          <div className="related-grid">
+            {relatedItems.map((item) => (
+              <ProductCard
+                key={item._id}
+                product={item}
+                onQuickView={setQuickViewSlug}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <QuickViewDrawer
+        slug={quickViewSlug}
+        onClose={() => setQuickViewSlug(null)}
+      />
     </div>
   );
 }

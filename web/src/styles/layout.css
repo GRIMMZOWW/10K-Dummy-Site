@@ -53,15 +53,17 @@
   flex-shrink: 0;
 }
 
-.catalog-badge {
+.brand-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.brand-edition {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: var(--ink-muted);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  padding: 3px 10px;
-  white-space: nowrap;
+  letter-spacing: 0.04em;
 }
 
 .header-controls {
@@ -77,8 +79,15 @@
   align-items: center;
   gap: 6px;
   overflow-x: auto;
-  padding: 2px 0 12px;
-  scrollbar-width: thin;
+  padding: 2px 32px 12px 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 32px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 32px), transparent 100%);
+}
+
+.category-ribbon::-webkit-scrollbar {
+  display: none;
 }
 
 .catalog-layout {

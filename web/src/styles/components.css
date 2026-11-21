@@ -1,15 +1,17 @@
-﻿.product-card {
+.product-card {
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: border-color 180ms var(--ease-out-expo);
+  transition: transform 220ms var(--ease-out-expo), border-color 220ms var(--ease-out-expo), box-shadow 220ms var(--ease-out-expo);
 }
 
 .product-card:hover {
-  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .product-media {
@@ -113,16 +115,21 @@
   gap: 8px;
   font-size: 0.75rem;
   color: var(--ink-muted);
+  min-width: 0;
 }
 
 .product-sku {
   font-family: var(--font-mono);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .product-brand {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  text-transform: capitalize;
 }
 
 .product-title {
@@ -182,21 +189,23 @@
 }
 
 .quick-view-btn {
-  padding: 5px 10px;
+  padding: 6px 11px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  background-color: var(--surface);
+  background-color: var(--bg);
+  color: var(--ink);
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 150ms var(--ease-out-expo), background-color 150ms var(--ease-out-expo);
+  flex-shrink: 0;
+  transition: border-color 180ms var(--ease-out-expo), background-color 180ms var(--ease-out-expo), color 180ms var(--ease-out-expo);
 }
 
 .quick-view-btn:hover {
   border-color: var(--accent);
-  background-color: var(--accent-soft);
-  color: var(--accent);
+  background-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .drawer-backdrop {
