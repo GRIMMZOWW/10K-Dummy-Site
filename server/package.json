@@ -1,0 +1,25 @@
+{
+  "name": "catalog-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "10k Product Catalog API server",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsc",
+    "seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.13.2",
+    "pino": "^9.6.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
