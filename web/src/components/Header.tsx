@@ -7,6 +7,7 @@ export type GridDensity = '3-col' | '4-col';
 interface HeaderProps {
   searchText: string;
   onSearchChange: (value: string) => void;
+  onSearchSubmit?: () => void;
   density: GridDensity;
   onDensityChange: (density: GridDensity) => void;
   categories: CategoryCount[];
@@ -17,6 +18,7 @@ interface HeaderProps {
 export function Header({
   searchText,
   onSearchChange,
+  onSearchSubmit,
   density,
   onDensityChange,
   categories,
@@ -52,7 +54,7 @@ export function Header({
           </div>
 
           <div className="header-controls">
-            <SearchBar value={searchText} onChange={onSearchChange} />
+            <SearchBar value={searchText} onChange={onSearchChange} onSubmit={onSearchSubmit} />
 
             <div className="density-toggle" role="group" aria-label="Grid density">
               <button

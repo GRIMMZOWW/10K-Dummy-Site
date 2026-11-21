@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { ProductFilters, ProductSort } from '../api/client';
 import { ActiveFilters } from '../components/ActiveFilters';
@@ -81,19 +81,29 @@ export function Catalog() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [quickViewSlug, setQuickViewSlug] = useState<string | null>(null);
 
+  const lastCommittedQRef = useRef(urlQ);
+  const lastCommittedMinRef = useRef(urlMinPrice);
+  const lastCommittedMaxRef = useRef(urlMaxPrice);
+
   useEffect(() => {
+    if (urlQ === lastCommittedQRef.current) return;
+    lastCommittedQRef.current = urlQ;
     setSearchText(urlQ);
   }, [urlQ]);
 
   useEffect(() => {
+    if (urlMinPrice === lastCommittedMinRef.current) return;
+    lastCommittedMinRef.current = urlMinPrice;
     setMinPriceInput(urlMinPrice);
   }, [urlMinPrice]);
 
   useEffect(() => {
+    if (urlMaxPrice === lastCommittedMaxRef.current) return;
+    lastCommittedMaxRef.current = urlMaxPrice;
     setMaxPriceInput(urlMaxPrice);
   }, [urlMaxPrice]);
 
-  const debouncedQ = useDebounce(searchText.trim(), 300);
+  const debouncedQ = useDebounce(searchText.trim().slice(0, 100), 300);
   const debouncedMin = useDebounce(minPriceInput, 300);
   const debouncedMax = useDebounce(maxPriceInput, 300);
 
@@ -102,18 +112,23 @@ export function Catalog() {
     [minPriceInput, maxPriceInput],
   );
 
-  useEffect(() => {
-    if (debouncedQ === urlQ) return;
+  const commitQueryToUrl = (nextQ: string) => {
+    if (nextQ === urlQ) return;
+    lastCommittedQRef.current = nextQ;
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
-        if (debouncedQ) next.set('q', debouncedQ);
+        if (nextQ) next.set('q', nextQ);
         else next.delete('q');
         next.delete('page');
         return next;
       },
       { replace: true },
     );
+  };
+
+  useEffect(() => {
+    commitQueryToUrl(debouncedQ);
   }, [debouncedQ, urlQ, setSearchParams]);
 
   useEffect(() => {
@@ -123,6 +138,8 @@ export function Catalog() {
     const nextMax = check.validMax ?? '';
     if (nextMin === urlMinPrice && nextMax === urlMaxPrice) return;
 
+    lastCommittedMinRef.current = nextMin;
+    lastCommittedMaxRef.current = nextMax;
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
@@ -169,6 +186,8 @@ export function Catalog() {
     });
 
   const handlePricePreset = (min: string, max: string) => {
+    lastCommittedMinRef.current = min;
+    lastCommittedMaxRef.current = max;
     setMinPriceInput(min);
     setMaxPriceInput(max);
     updateParam((next) => {
@@ -181,6 +200,9 @@ export function Catalog() {
   };
 
   const handleReset = () => {
+    lastCommittedQRef.current = '';
+    lastCommittedMinRef.current = '';
+    lastCommittedMaxRef.current = '';
     setSearchText('');
     setMinPriceInput('');
     setMaxPriceInput('');
@@ -212,6 +234,7 @@ export function Catalog() {
       <Header
         searchText={searchText}
         onSearchChange={setSearchText}
+        onSearchSubmit={() => commitQueryToUrl(searchText.trim().slice(0, 100))}
         density={density}
         onDensityChange={setDensity}
         categories={categories}
@@ -278,6 +301,7 @@ export function Catalog() {
               maxPrice={urlMaxPrice}
               inStock={urlInStock}
               onClearQ={() => {
+                lastCommittedQRef.current = '';
                 setSearchText('');
                 updateParam((next) => {
                   next.delete('q');
@@ -296,7 +320,10 @@ export function Catalog() {
             />
           )}
 
-          {productsQuery.isPending ? (
+          {productsQuery.isPending ||
+          (productsQuery.isFetching &&
+            productsQuery.isPlaceholderData &&
+            data?.items.length === 0) ? (
             <Skeleton count={12} />
           ) : productsQuery.isError ? (
             <div className="state-panel is-error" role="alert">

@@ -7,9 +7,10 @@ import { useProducts } from '../hooks/useProducts';
 interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
+  onSubmit?: () => void;
 }
 
-export function SearchBar({ value, onChange }: SearchBarProps) {
+export function SearchBar({ value, onChange, onSubmit }: SearchBarProps) {
   const containerRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -68,6 +69,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
       onSubmit={(e) => {
         e.preventDefault();
         setDropdownOpen(false);
+        onSubmit?.();
       }}
     >
       <label htmlFor="catalog-search" className="sr-only">
@@ -141,7 +143,8 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
           role="region"
           aria-label="Quick search matches"
         >
-          {previewQuery.isPending ? (
+          {previewQuery.isPending ||
+          (previewQuery.isFetching && previewItems.length === 0) ? (
             <div className="search-dropdown-status">Searching catalog...</div>
           ) : previewItems.length === 0 ? (
             <div className="search-dropdown-status">No quick matches</div>

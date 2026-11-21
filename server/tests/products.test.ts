@@ -153,6 +153,14 @@ describe('Products API integration tests', () => {
       expect(textRes.body.total).toBeGreaterThan(0);
     });
 
+    it('returns matching peeler products for GET /api/products?q=peeler', async () => {
+      const res = await request(app).get('/api/products?q=peeler');
+      expect(res.status).toBe(200);
+      expect(res.body.total).toBeGreaterThan(0);
+      expect(res.body.items.length).toBeGreaterThan(0);
+      expect((res.body.items[0].title as string).toLowerCase()).toContain('peeler');
+    });
+
     it('filters out-of-stock products when inStock=true', async () => {
       const res = await request(app).get('/api/products?inStock=true&limit=24');
       expect(res.status).toBe(200);
