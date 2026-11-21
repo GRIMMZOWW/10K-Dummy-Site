@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import {
   computeOriginalPrice,
   formatPrice,
+  handleImageError,
   type ProductCard as ProductCardData,
 } from '../api/client';
 
@@ -32,6 +33,7 @@ export function ProductCard({ product, onQuickView }: ProductCardProps) {
             alt={product.title}
             loading="lazy"
             className="product-thumb"
+            onError={handleImageError}
           />
         </Link>
 

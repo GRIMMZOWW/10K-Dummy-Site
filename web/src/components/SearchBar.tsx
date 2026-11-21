@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatPrice } from '../api/client';
+import { formatPrice, handleImageError } from '../api/client';
 import { useDebounce } from '../hooks/useDebounce';
 import { useProducts } from '../hooks/useProducts';
 
@@ -159,6 +159,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
                       alt=""
                       loading="lazy"
                       className="search-option-thumb"
+                      onError={handleImageError}
                     />
                     <span className="search-option-meta">
                       <span className="search-option-title">{item.title}</span>

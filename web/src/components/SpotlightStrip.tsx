@@ -1,20 +1,45 @@
 import { Link } from 'react-router-dom';
-import { formatPrice } from '../api/client';
+import { formatPrice, handleImageError, type ProductCard } from '../api/client';
 import { useProducts } from '../hooks/useProducts';
 
 interface SpotlightStripProps {
   visible: boolean;
 }
 
+function pickDiverseSpotlight(candidates: ProductCard[], count: number): ProductCard[] {
+  const picked: ProductCard[] = [];
+  const seenBaseSkus = new Set<string>();
+  const seenCategories = new Set<string>();
+
+  for (const item of candidates) {
+    const baseSku = item.sku.split('-').slice(0, 2).join('-');
+    if (seenBaseSkus.has(baseSku) || seenCategories.has(item.category)) continue;
+    seenBaseSkus.add(baseSku);
+    seenCategories.add(item.category);
+    picked.push(item);
+    if (picked.length === count) return picked;
+  }
+
+  for (const item of candidates) {
+    const baseSku = item.sku.split('-').slice(0, 2).join('-');
+    if (seenBaseSkus.has(baseSku)) continue;
+    seenBaseSkus.add(baseSku);
+    picked.push(item);
+    if (picked.length === count) return picked;
+  }
+
+  return picked;
+}
+
 export function SpotlightStrip({ visible }: SpotlightStripProps) {
   const spotlightQuery = useProducts(
-    { sort: 'rating_desc', inStock: true, page: 1, limit: 3 },
+    { sort: 'rating_desc', inStock: true, page: 1, limit: 24 },
     visible,
   );
 
   if (!visible) return null;
 
-  const items = spotlightQuery.data?.items ?? [];
+  const items = pickDiverseSpotlight(spotlightQuery.data?.items ?? [], 3);
   if (spotlightQuery.isError || (!spotlightQuery.isPending && items.length === 0)) {
     return null;
   }
@@ -51,6 +76,7 @@ export function SpotlightStrip({ visible }: SpotlightStripProps) {
                 alt={item.title}
                 loading="lazy"
                 className="spotlight-thumb"
+                onError={handleImageError}
               />
               <div className="spotlight-meta">
                 <span className="spotlight-cat">

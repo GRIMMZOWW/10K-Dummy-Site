@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ApiError, computeOriginalPrice, formatPrice } from '../api/client';
+import { ApiError, computeOriginalPrice, formatPrice, handleImageError } from '../api/client';
 import { ProductCard } from '../components/ProductCard';
 import { QuickViewDrawer } from '../components/QuickViewDrawer';
 import { useProductDetail, useProducts } from '../hooks/useProducts';
@@ -109,6 +109,7 @@ export function ProductDetail() {
               alt={product.title}
               loading="lazy"
               className="detail-main-image"
+              onError={handleImageError}
             />
           </div>
           {gallery.length > 1 && (
@@ -121,7 +122,7 @@ export function ProductDetail() {
                   aria-label={`View image ${idx + 1}`}
                   onClick={() => setSelectedImage(idx)}
                 >
-                  <img src={imgUrl} alt="" loading="lazy" />
+                  <img src={imgUrl} alt="" loading="lazy" onError={handleImageError} />
                 </button>
               ))}
             </div>

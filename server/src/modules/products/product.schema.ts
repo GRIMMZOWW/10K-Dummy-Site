@@ -6,6 +6,9 @@ export function toMinorUnits(major: number): number {
 }
 
 const MAJOR_PRICE_PATTERN = /^\d+(?:\.\d{1,2})?$/;
+const MAX_SAFE_MAJOR_PRICE = 10_000_000;
+
+const noNullBytes = (val: string) => !val.includes('\0');
 
 const priceQuerySchema = z.preprocess(
   (val) => {
@@ -15,17 +18,25 @@ const priceQuerySchema = z.preprocess(
   z
     .string()
     .trim()
+    .refine(noNullBytes, { message: 'Null bytes are not allowed' })
     .refine((s) => MAJOR_PRICE_PATTERN.test(s), {
       message: 'Price must be a non-negative number with at most 2 decimal places',
     })
-    .transform((s) => toMinorUnits(Number(s)))
+    .transform((s) => Number(s))
+    .refine((n) => Number.isFinite(n) && n <= MAX_SAFE_MAJOR_PRICE, {
+      message: 'Price exceeds maximum allowed value',
+    })
+    .transform((n) => toMinorUnits(n))
     .optional(),
 );
 
 const optionalTrimmedString = (maxLen?: number) =>
   z.preprocess(
     (val) => (val === '' ? undefined : val),
-    (maxLen !== undefined ? z.string().trim().max(maxLen) : z.string().trim()).optional(),
+    (maxLen !== undefined
+      ? z.string().trim().max(maxLen).refine(noNullBytes, { message: 'Null bytes are not allowed' })
+      : z.string().trim().refine(noNullBytes, { message: 'Null bytes are not allowed' })
+    ).optional(),
   );
 
 export const SORT_VALUES = [
@@ -51,9 +62,10 @@ export const productListQuerySchema = z
       .transform(() => true)
       .optional(),
     sort: z.enum(SORT_VALUES).default('relevance'),
-    page: z.coerce.number().int().min(1).default(1),
+    page: z.coerce.number().int().min(1).max(1_000_000).default(1),
     limit: z.coerce.number().int().min(1).max(100).default(24),
   })
+  .strict()
   .superRefine((data, ctx) => {
     if (
       data.minPrice !== undefined &&
@@ -71,7 +83,12 @@ export const productListQuerySchema = z
 export type ProductListQuery = z.infer<typeof productListQuerySchema>;
 
 export const productSlugParamSchema = z.object({
-  slug: z.string().trim().min(1).max(200),
+  slug: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .refine(noNullBytes, { message: 'Null bytes are not allowed' }),
 });
 
 export type ProductSlugParam = z.infer<typeof productSlugParamSchema>;

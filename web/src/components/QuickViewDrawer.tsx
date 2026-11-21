@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { computeOriginalPrice, formatPrice } from '../api/client';
+import { computeOriginalPrice, formatPrice, handleImageError } from '../api/client';
 import { useProductDetail } from '../hooks/useProducts';
 
 interface QuickViewDrawerProps {
@@ -116,6 +116,7 @@ export function QuickViewDrawer({ slug, onClose }: QuickViewDrawerProps) {
                 alt={product.title}
                 loading="lazy"
                 className="detail-main-image"
+                onError={handleImageError}
               />
             </div>
 
@@ -129,7 +130,7 @@ export function QuickViewDrawer({ slug, onClose }: QuickViewDrawerProps) {
                     aria-label={`View image ${idx + 1}`}
                     onClick={() => setSelectedImage(idx)}
                   >
-                    <img src={imgUrl} alt="" loading="lazy" />
+                    <img src={imgUrl} alt="" loading="lazy" onError={handleImageError} />
                   </button>
                 ))}
               </div>

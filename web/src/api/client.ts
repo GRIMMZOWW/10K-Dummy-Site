@@ -1,4 +1,25 @@
+import type { SyntheticEvent } from 'react';
+
 export type ProductSort = 'relevance' | 'price_asc' | 'price_desc' | 'rating_desc' | 'newest';
+
+export const FALLBACK_IMAGE_SRC =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" fill="none">' +
+      '<rect width="160" height="120" fill="#eeece5"/>' +
+      '<rect x="52" y="34" width="56" height="52" rx="4" stroke="#c2beb2" stroke-width="2"/>' +
+      '<path d="M62 74l14-16 12 13 8-9 12 12" stroke="#c2beb2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="72" cy="48" r="4" fill="#c2beb2"/>' +
+    '</svg>',
+  );
+
+export function handleImageError(event: SyntheticEvent<HTMLImageElement>): void {
+  const img = event.currentTarget;
+  img.onerror = null;
+  if (img.src !== FALLBACK_IMAGE_SRC) {
+    img.src = FALLBACK_IMAGE_SRC;
+  }
+}
 
 export interface ProductCard {
   _id: string;

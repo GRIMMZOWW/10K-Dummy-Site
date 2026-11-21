@@ -21,6 +21,16 @@ const VALID_SORTS = new Set<ProductSort>([
 ]);
 
 const PRICE_PATTERN = /^\d+(?:\.\d{1,2})?$/;
+const MAX_MAJOR_PRICE = 10_000_000;
+const MAX_PAGE = 1_000_000;
+
+function sanitizePriceParam(raw: string | null): string {
+  if (!raw) return '';
+  const trimmed = raw.trim();
+  if (!PRICE_PATTERN.test(trimmed)) return '';
+  const num = Number(trimmed);
+  return Number.isFinite(num) && num <= MAX_MAJOR_PRICE ? trimmed : '';
+}
 
 function validatePriceInputs(minRaw: string, maxRaw: string): {
   validMin?: string;
@@ -30,10 +40,10 @@ function validatePriceInputs(minRaw: string, maxRaw: string): {
   const minTrim = minRaw.trim();
   const maxTrim = maxRaw.trim();
 
-  if (minTrim !== '' && !PRICE_PATTERN.test(minTrim)) {
+  if (minTrim !== '' && (!PRICE_PATTERN.test(minTrim) || Number(minTrim) > MAX_MAJOR_PRICE)) {
     return { error: 'Min price must be a non-negative amount with up to 2 decimals.' };
   }
-  if (maxTrim !== '' && !PRICE_PATTERN.test(maxTrim)) {
+  if (maxTrim !== '' && (!PRICE_PATTERN.test(maxTrim) || Number(maxTrim) > MAX_MAJOR_PRICE)) {
     return { error: 'Max price must be a non-negative amount with up to 2 decimals.' };
   }
   if (minTrim !== '' && maxTrim !== '' && Number(minTrim) > Number(maxTrim)) {
@@ -50,15 +60,19 @@ function validatePriceInputs(minRaw: string, maxRaw: string): {
 export function Catalog() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const urlQ = searchParams.get('q') ?? '';
-  const urlCategory = searchParams.get('category') ?? '';
-  const urlMinPrice = searchParams.get('minPrice') ?? '';
-  const urlMaxPrice = searchParams.get('maxPrice') ?? '';
+  const urlQ = (searchParams.get('q') ?? '').trim().slice(0, 100);
+  const urlCategory = (searchParams.get('category') ?? '').trim().slice(0, 100);
+  const rawSafeMin = sanitizePriceParam(searchParams.get('minPrice'));
+  const rawSafeMax = sanitizePriceParam(searchParams.get('maxPrice'));
+  const urlMinPrice =
+    rawSafeMin && rawSafeMax && Number(rawSafeMin) > Number(rawSafeMax) ? '' : rawSafeMin;
+  const urlMaxPrice =
+    rawSafeMin && rawSafeMax && Number(rawSafeMin) > Number(rawSafeMax) ? '' : rawSafeMax;
   const urlInStock = searchParams.get('inStock') === 'true';
   const rawSort = searchParams.get('sort') as ProductSort | null;
   const urlSort: ProductSort = rawSort && VALID_SORTS.has(rawSort) ? rawSort : 'relevance';
   const rawPage = Number.parseInt(searchParams.get('page') ?? '1', 10);
-  const urlPage = Number.isFinite(rawPage) && rawPage >= 1 ? rawPage : 1;
+  const urlPage = Number.isFinite(rawPage) && rawPage >= 1 ? Math.min(rawPage, MAX_PAGE) : 1;
 
   const [searchText, setSearchText] = useState(urlQ);
   const [minPriceInput, setMinPriceInput] = useState(urlMinPrice);
