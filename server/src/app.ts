@@ -13,8 +13,8 @@ export function createApp() {
   app.use(compression());
   app.use(
     rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 2000,
+      windowMs: 60 * 1000,
+      max: 100_000,
       standardHeaders: true,
       legacyHeaders: false,
     }),

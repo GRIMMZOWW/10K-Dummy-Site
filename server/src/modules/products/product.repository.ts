@@ -115,13 +115,18 @@ export const productRepository = {
       ? { ...CARD_PROJECTION, score: { $meta: 'textScore' } }
       : CARD_PROJECTION;
 
+    const countPromise =
+      Object.keys(filter).length === 0
+        ? ProductModel.estimatedDocumentCount()
+        : ProductModel.countDocuments(filter);
+
     const [rawItems, total] = await Promise.all([
       ProductModel.find(filter, projection)
         .sort(sort)
         .skip(skip)
         .limit(query.limit)
         .lean<Array<ProductCard & { score?: number }>>(),
-      ProductModel.countDocuments(filter),
+      countPromise,
     ]);
 
     const items: ProductCard[] = isTextSearch

@@ -23,4 +23,4 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
-export const logger = pino();
+export const logger = pino({ level: process.env.LOG_LEVEL ?? 'info' });
