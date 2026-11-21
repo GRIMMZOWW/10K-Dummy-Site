@@ -87,6 +87,7 @@ Rule: no file over 500 lines. Controllers never touch Mongo directly.
 | `{ category: 1, price: 1 }` | Category + price filter/sort |
 | `{ category: 1, rating: -1 }` | Category + rating sort |
 | `{ price: 1 }` | Price sort with no category |
+| `{ rating: -1 }` | Rating sort with no category |
 | `{ createdAt: -1 }` | `sort=newest` with no category |
 | `{ category: 1, createdAt: -1 }` | `sort=newest` inside a category |
 | `{ titleLower: 1 }` | Prefix search (autocomplete style) |

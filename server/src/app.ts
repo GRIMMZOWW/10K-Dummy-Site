@@ -1,9 +1,24 @@
+import compression from 'compression';
 import express, { type NextFunction, type Request, type Response } from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import { logger } from './config/env';
+import { errorHandler, notFoundHandler } from './middleware/error';
+import { productsRouter } from './modules/products/product.routes';
 
 export function createApp() {
   const app = express();
 
+  app.use(helmet());
+  app.use(compression());
+  app.use(
+    rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 2000,
+      standardHeaders: true,
+      legacyHeaders: false,
+    }),
+  );
   app.use(express.json());
 
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -26,14 +41,10 @@ export function createApp() {
     res.json({ ok: true });
   });
 
-  app.use((_req: Request, res: Response) => {
-    res.status(404).json({ error: 'Not found' });
-  });
+  app.use('/api', productsRouter);
 
-  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    logger.error({ err }, 'Unhandled error');
-    res.status(500).json({ error: 'Internal server error' });
-  });
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   return app;
 }
